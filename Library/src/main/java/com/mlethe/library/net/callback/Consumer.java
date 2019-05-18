@@ -51,26 +51,26 @@ public abstract class Consumer<T> implements Observer<T> {
      *
      * @param result
      */
-    protected abstract void onSuccess(T result);
+    public abstract void onSuccess(T result);
 
     /**
      * 请求错误
      * @param code
      * @param msg
      */
-    protected void onError(int code, String msg){}
+    public void onError(int code, String msg){}
 
     /**
      * 请求结束
      */
-    protected void onRequestEnd(){}
+    public void onRequestEnd(){}
 
     /**
      * 请求异常
      *
      * @param throwable
      */
-    protected abstract void onFailure(Throwable throwable);
+    public abstract void onFailure(Throwable throwable);
 
     private void autoInstallApk(File file) {
         if (FileUtil.getExtension(file.getPath()).equals("apk")) {

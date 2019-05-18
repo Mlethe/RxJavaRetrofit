@@ -1,6 +1,7 @@
 package com.mlethe.demo;
 
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.mlethe.library.net.RestClient;
 import com.mlethe.library.net.callback.Consumer;
@@ -21,13 +22,17 @@ public class MainActivity extends AppCompatActivity {
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Result>() {
                     @Override
-                    protected void onSuccess(Result result) {
-
+                    public void onSuccess(Result result) {
+                        if (result.isOk()) {
+                            Toast.makeText(MainActivity.this, "添加成功", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "添加失败", Toast.LENGTH_SHORT).show();
+                        }
                     }
 
                     @Override
-                    protected void onFailure(Throwable throwable) {
-
+                    public void onFailure(Throwable throwable) {
+                        Toast.makeText(MainActivity.this, "添加失败", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
