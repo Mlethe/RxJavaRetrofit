@@ -8,5 +8,6 @@ public enum ConfigKeys {
   API_HOSTS,
   APPLICATION_CONTEXT,
   INTERCEPTORS,
+  LOG_ENABLE,
   CONFIG_READY
 }

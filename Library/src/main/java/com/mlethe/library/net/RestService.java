@@ -10,15 +10,13 @@ import retrofit2.http.Streaming;
 import retrofit2.http.Url;
 
 /**
- * retrofit的所有功能
+ * Created by Mlethe on 2018/6/6.
  */
-
-public interface RestService {
-    //下载是直接到内存,所以需要 @Streaming
+interface RestService {
+    // 下载是直接到内存,所以需要 @Streaming
     @Streaming
     @GET
     Observable<ResponseBody> download(@Url String url, @QueryMap Map<String, Object> params);
-
 }
 
 

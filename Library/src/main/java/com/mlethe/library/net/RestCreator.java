@@ -8,19 +8,25 @@ import android.util.Log;
 import com.google.gson.GsonBuilder;
 import com.mlethe.library.app.ConfigKeys;
 import com.mlethe.library.app.ProjectInit;
+import com.mlethe.library.net.callback.IProcess;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -30,15 +36,20 @@ import retrofit2.converter.gson.GsonConverterFactory;
 /**
  * Created by Mlethe on 2018/6/6.
  */
-
-public final class RestCreator {
+final class RestCreator {
 
     private static final String TAG = "RestCreator";
 
-    private RestCreator() {
-    }
+    private static final boolean LOG_ENABLE = ProjectInit.getConfiguration(ConfigKeys.LOG_ENABLE);
+
+    protected static final String BASE_URL_HEADER = "base_url_order";
 
     private static final Map<String, String> HEADERS = new HashMap<>();
+
+    private static final BlockingQueue<IProcess> mIProcessPool = new LinkedBlockingQueue<>();
+
+    private RestCreator() {
+    }
 
     /**
      * 产生一个全局的Retrofit客户端
@@ -54,7 +65,7 @@ public final class RestCreator {
     }
 
     private static final class OKHttpHolder {
-        private static final int DEFAULT_READ_TIME_OUT = 30;    // 读写超时时间10秒
+        private static final int DEFAULT_READ_TIME_OUT = 30;    // 读写超时时间30秒
         private static final long DEFAULT_DIR_CACHE = 1024 * 1024 * 10; // 缓存大小10M
         private static final int TIMEOUT_CONNECT = 5; // 5秒
         private static final int TIMEOUT_DISCONNECT = 60 * 60 * 24 * 7; // 7天
@@ -67,12 +78,12 @@ public final class RestCreator {
         /**
          * 在线缓存
          */
-        public static final Interceptor REWRITE_RESPONSE_INTERCEPTOR = new Interceptor() {
+        private static final Interceptor REWRITE_RESPONSE_INTERCEPTOR = new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
                 //获取retrofit @headers里面的参数，参数可以自己定义，在本例我自己定义的是cache，跟@headers里面对应就可以了
                 String cache = chain.request().header("cache");
-                if (BuildConfig.DEBUG) {
+                if (LOG_ENABLE) {
                     Log.e(TAG, "intercept: cache->" + cache);
                 }
                 Response originalResponse = chain.proceed(chain.request());
@@ -98,7 +109,7 @@ public final class RestCreator {
          *
          * @return
          */
-        public static final boolean isNetworkConnected() {
+        private static final boolean isNetworkConnected() {
             // 得到连接管理器对象
             try {
                 ConnectivityManager connectivityManager = (ConnectivityManager) ProjectInit.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -115,7 +126,7 @@ public final class RestCreator {
         /**
          * 离线缓存
          */
-        public static final Interceptor REWRITE_RESPONSE_INTERCEPTOR_OFFLINE = new Interceptor() {
+        private static final Interceptor REWRITE_RESPONSE_INTERCEPTOR_OFFLINE = new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
                 Request request = chain.request();
@@ -135,7 +146,7 @@ public final class RestCreator {
                 .build();
 
         // 多baseUrl切换
-        private static final Interceptor CHANGE_BASE_URL_INTERCEPTOR= new Interceptor() {
+        private static final Interceptor CHANGE_BASE_URL_INTERCEPTOR = new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
                 // 获取request
@@ -143,11 +154,11 @@ public final class RestCreator {
                 // 获取request的创建者builder
                 Request.Builder builder = request.newBuilder();
                 // 从request中获取headers，通过给定的键url_name
-                List<String> headerValues = request.headers("base_url_order");
+                List<String> headerValues = request.headers(BASE_URL_HEADER);
                 int urlLength = RetrofitHolder.BASE_URLS.length;
                 if (headerValues != null && headerValues.size() > 0 && urlLength > 1) {
                     // 如果有这个header，先将配置的header删除，因此header仅用作app和okhttp之间使用
-                    builder.removeHeader("base_url_order");
+                    builder.removeHeader(BASE_URL_HEADER);
 
                     // 匹配获得新的BaseUrl
                     int headerValue = Integer.parseInt(headerValues.get(0));
@@ -171,6 +182,29 @@ public final class RestCreator {
             }
         };
 
+        // 上传进度条拦截器
+        private static final Interceptor UPLOAD_PROCESS_INTERCEPTOR = new Interceptor() {
+            @Override
+            public Response intercept(Chain chain) throws IOException {
+                // 获取request
+                Request request = chain.request();
+                // 获取request的创建者builder
+                Request.Builder builder = request.newBuilder();
+                RequestBody requestBody = request.body();
+                if (requestBody instanceof MultipartBody) {
+                    try {
+                        IProcess iProcess = mIProcessPool.poll(5, TimeUnit.SECONDS);
+                        if (iProcess == null) return chain.proceed(request);
+                        return chain.proceed(builder.method(request.method(), new ProgressRequestBody(requestBody, iProcess)).build());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        return chain.proceed(request);
+                    }
+                }
+                return chain.proceed(request);
+            }
+        };
+
         private static final List<Interceptor> INTERCEPTORS = ProjectInit.getConfiguration(ConfigKeys.INTERCEPTORS);
 
         private static final OkHttpClient.Builder BUILDER = new OkHttpClient.Builder()
@@ -181,11 +215,12 @@ public final class RestCreator {
                 .addInterceptor(REWRITE_RESPONSE_INTERCEPTOR_OFFLINE)   // 没网络时的拦截器
                 .cache(cache)
                 .addInterceptor(HEADER_INTERCEPTOR)
-                .addInterceptor(CHANGE_BASE_URL_INTERCEPTOR);
+                .addInterceptor(CHANGE_BASE_URL_INTERCEPTOR)
+                .addInterceptor(UPLOAD_PROCESS_INTERCEPTOR);
 
         static {
             BUILDER.interceptors().addAll(INTERCEPTORS);
-            if (BuildConfig.DEBUG) {
+            if (LOG_ENABLE) {
                 BUILDER.addInterceptor(new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
                     @Override
                     public void log(String message) {
@@ -197,6 +232,7 @@ public final class RestCreator {
         }
 
         private static final OkHttpClient OK_HTTP_CLIENT = BUILDER.build();
+
     }
 
     //提供接口让调用者得到RestService对象
@@ -209,15 +245,15 @@ public final class RestCreator {
         private static final RestCreator REST_CREATOR = new RestCreator();
     }
 
-    public static final RestCreator getInstance() {
+    protected static final RestCreator getInstance() {
         return RestCreatorHolder.REST_CREATOR;
     }
 
-    public final <T> T create(Class<T> clazz) {
+    protected final <T> T create(Class<T> clazz) {
         return RetrofitHolder.RETROFIT_CLIENT.create(clazz);
     }
 
-    public final void addHeader(Map<String, String> headers) {
+    protected final void addHeader(Map<String, String> headers) {
         if (headers != null) {
             HEADERS.putAll(headers);
         }
@@ -227,8 +263,19 @@ public final class RestCreator {
      * 获取RestService对象
      * @return
      */
-    public final RestService getRestService() {
+    protected final RestService getRestService() {
         return RestServiceHolder.REST_SERVICE;
+    }
+
+    /**
+     * 设置上传进度条
+     * @param process
+     * @return
+     */
+    protected final RestCreator setProcess(IProcess process) {
+        if (process != null)
+            mIProcessPool.add(process);
+        return this;
     }
 
 }

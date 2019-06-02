@@ -25,6 +25,7 @@ public class Configurator {
 
   private Configurator() {
     CONFIGS.put(ConfigKeys.CONFIG_READY.name(), false);
+    CONFIGS.put(ConfigKeys.LOG_ENABLE, false);
     CONFIGS.put(ConfigKeys.INTERCEPTORS, INTERCEPTORS);
   }
 
@@ -34,7 +35,7 @@ public class Configurator {
    * @param value
    * @return
    */
-  final Configurator put(Object key, Object value) {
+  public final Configurator put(Object key, Object value) {
     CONFIGS.put(key, value);
     return this;
   }
@@ -82,6 +83,15 @@ public class Configurator {
     if (interceptor == null) throw new IllegalArgumentException("interceptor == null");
     INTERCEPTORS.add(interceptor);
     return this;
+  }
+
+  /**
+   * 设置日志是否打印
+   * @param enable
+   * @return
+   */
+  public final Configurator setLogEnable(boolean enable) {
+    return put(ConfigKeys.LOG_ENABLE, enable);
   }
 
   /**

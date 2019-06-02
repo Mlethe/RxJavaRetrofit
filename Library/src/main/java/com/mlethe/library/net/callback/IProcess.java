@@ -1,9 +1,13 @@
 package com.mlethe.library.net.callback;
 
+/**
+ * Created by Mlethe on 2018/6/6.
+ */
 public interface IProcess {
     /**
      * 下载进度
-     * @param percent
+     * @param currentLength 当前长度
+     * @param totalLength 总长度
      */
-    void onProgress(float percent);
+    void onProgress(float currentLength, float totalLength);
 }

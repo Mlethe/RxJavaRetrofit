@@ -1,13 +1,5 @@
 package com.mlethe.library.net.callback;
 
-import android.content.Intent;
-import android.net.Uri;
-
-import com.mlethe.library.app.ProjectInit;
-import com.mlethe.library.utils.file.FileUtil;
-
-import java.io.File;
-
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import retrofit2.HttpException;
@@ -25,10 +17,6 @@ public abstract class Consumer<T> implements Observer<T> {
     @Override
     public void onNext(T t) {
         onSuccess(t);
-        if (t instanceof File) {
-            //下到了APK直接安装
-            autoInstallApk((File) t);
-        }
     }
 
     @Override
@@ -49,9 +37,9 @@ public abstract class Consumer<T> implements Observer<T> {
     /**
      * 请求成功
      *
-     * @param result
+     * @param t
      */
-    public abstract void onSuccess(T result);
+    public abstract void onSuccess(T t);
 
     /**
      * 请求错误
@@ -72,13 +60,4 @@ public abstract class Consumer<T> implements Observer<T> {
      */
     public abstract void onFailure(Throwable throwable);
 
-    private void autoInstallApk(File file) {
-        if (FileUtil.getExtension(file.getPath()).equals("apk")) {
-            final Intent install = new Intent();
-            install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            install.setAction(Intent.ACTION_VIEW);
-            install.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
-            ProjectInit.getApplicationContext().startActivity(install);
-        }
-    }
 }

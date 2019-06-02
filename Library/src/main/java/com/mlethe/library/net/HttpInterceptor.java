@@ -13,7 +13,7 @@ import okhttp3.Response;
  * 向请求头里添加公共参数
  * Created by Mlethe on 2018/2/22.
  */
-public class HttpInterceptor implements Interceptor {
+class HttpInterceptor implements Interceptor {
     private Map<String, String> mHeaderParamsMap = new HashMap<>();
 
     public HttpInterceptor() {

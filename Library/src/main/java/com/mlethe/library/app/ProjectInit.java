@@ -7,22 +7,22 @@ import android.content.Context;
  */
 
 public class ProjectInit {
-  public static Configurator init(Context context) {
+  public static final Configurator init(Context context) {
     Configurator.getInstance()
             .getConfigs()
             .put(ConfigKeys.APPLICATION_CONTEXT.name(), context.getApplicationContext());
     return Configurator.getInstance();
   }
 
-  public static Configurator getConfigurator() {
+  public static final Configurator getConfigurator() {
     return Configurator.getInstance();
   }
 
-  public static <T> T getConfiguration(Object key) {
+  public static final <T> T getConfiguration(Object key) {
     return getConfigurator().getConfiguration(key);
   }
 
-  public static Context getApplicationContext() {
+  public static final Context getApplicationContext() {
     return getConfiguration(ConfigKeys.APPLICATION_CONTEXT.name());
   }
 

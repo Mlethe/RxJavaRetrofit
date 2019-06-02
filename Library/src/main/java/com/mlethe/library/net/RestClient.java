@@ -2,7 +2,6 @@ package com.mlethe.library.net;
 
 import com.mlethe.library.net.callback.IProcess;
 import com.mlethe.library.net.callback.IRequest;
-import com.mlethe.library.net.download.DownloadHandler;
 
 import java.io.File;
 import java.util.HashMap;
@@ -10,7 +9,14 @@ import java.util.Map;
 
 import io.reactivex.Observable;
 
+/**
+ * Created by Mlethe on 2018/6/6.
+ */
 public class RestClient {
+
+    public static final String TAG = "RestClient";
+
+    public static final String BASE_URL_HEADER = RestCreator.BASE_URL_HEADER;
 
     private HashMap<String, String> mHeaders = new HashMap<>();
     private HashMap<String, Object> mParams = new HashMap<>();
@@ -51,12 +57,33 @@ public class RestClient {
     }
 
     /**
+     * 添加参数
+     * @param key
+     * @param value
+     * @return
+     */
+    public RestClient param(String key, Object value) {
+        mParams.put(key, value);
+        return this;
+    }
+
+    /**
+     * 添加参数
+     * @param params
+     * @return
+     */
+    public RestClient params(Map<String, Object> params) {
+        mParams.putAll(params);
+        return this;
+    }
+
+    /**
      * 添加头部参数
      * @param key
      * @param value
      * @return
      */
-    public RestClient addHeader(String key, Object value) {
+    public RestClient header(String key, Object value) {
         mHeaders.put(key, String.valueOf(value));
         return this;
     }
@@ -66,7 +93,7 @@ public class RestClient {
      * @param headers
      * @return
      */
-    public RestClient addHeaders(Map<String, String> headers) {
+    public RestClient headers(Map<String, String> headers) {
         mHeaders.putAll(headers);
         return this;
     }
@@ -79,6 +106,7 @@ public class RestClient {
      */
     public final <T> T create(Class<T> clazz) {
         RestCreator.getInstance().addHeader(mHeaders);
+        RestCreator.getInstance().setProcess(mIProcess);
         if (mIRequest != null) {
             mIRequest.onRequestStart();
         }
@@ -132,4 +160,5 @@ public class RestClient {
     public final Observable<File> download() {
         return new DownloadHandler(mParams, mHeaders, mUrl, mIRequest, mIProcess, mDownloadDir, mExtension, mFilename).handleDownload();
     }
+
 }
