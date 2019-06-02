@@ -40,11 +40,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         downloadPb = findViewById(R.id.download_pb);
         uploadOnePb = findViewById(R.id.upload_one_pb);
         uploadMorePb = findViewById(R.id.upload_more_pb);
-        RestClient.getInstance()
+        /*RestClient.getInstance()
                 .create(ServerApi.class)
                 .add("test")
-                .observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Result>() {
                     @Override
                     public void onSuccess(Result result) {
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onFailure(Throwable throwable) {
                         Toast.makeText(MainActivity.this, "添加失败", Toast.LENGTH_SHORT).show();
                     }
-                });
+                });*/
     }
 
     private void autoInstallApk(File file) {

@@ -5,7 +5,7 @@
 * 1.moudel导入工程
 
 ```java
-  implementation 'com.github.Mlethe:RxJavaRetrofit:1.0.0'
+  implementation 'com.github.Mlethe:RxJavaRetrofit:1.0.1'
 ```
 
 * 2.初始化设置：Application中初始化
