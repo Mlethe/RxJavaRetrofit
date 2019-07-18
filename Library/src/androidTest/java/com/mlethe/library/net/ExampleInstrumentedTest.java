@@ -1,12 +1,12 @@
-package com.mlethe.demo;
+package com.mlethe.library.net;
 
 import android.content.Context;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
 
@@ -22,6 +22,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.mlethe.demo", appContext.getPackageName());
+        assertEquals("com.mlethe.library.net.test", appContext.getPackageName());
     }
 }

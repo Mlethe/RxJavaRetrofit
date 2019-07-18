@@ -1,4 +1,4 @@
-package com.mlethe.demo;
+package com.mlethe.rxjavaretrofit.demo;
 
 import android.content.Intent;
 import android.net.Uri;

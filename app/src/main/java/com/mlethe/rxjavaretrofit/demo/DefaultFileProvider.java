@@ -1,4 +1,4 @@
-package com.mlethe.demo;
+package com.mlethe.rxjavaretrofit.demo;
 
 import androidx.core.content.FileProvider;
 
