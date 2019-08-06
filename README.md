@@ -1,14 +1,24 @@
 # Retrofit+Rxjava+okhttp封装
 
 ## 依赖工程
+---
+编辑 `build.gradle`:
+```groovy
+allprojects {
+    repositories {
+        ...
+        maven { url "https://jitpack.io" }
+    }
+}
 
-* 1.moudel导入工程
-
-```java
-  implementation 'com.github.Mlethe:RxJavaRetrofit:1.0.2'
+dependencies {
+    implementation 'com.github.Mlethe:RxJavaRetrofit:1.0.3'
+}
 ```
 
-* 2.初始化设置：Application中初始化
+## 代码使用
+
+* 1.初始化设置：Application中初始化
 
 ```java
     ProjectInit.init(this)
@@ -17,9 +27,7 @@
         .configure();
 ```
 
-## 代码使用
-
-* 1.普通请求
+* 2.普通请求
 
 ```java
     RestClient.getInstance()
@@ -44,7 +52,7 @@
         });
 ```
 
-* 2.上传文件（带进度条）
+* 3.上传文件（带进度条）
 
 ```java
     RestClient.getInstance()
@@ -71,7 +79,7 @@
         });
 ```
 
-* 3.下载文件（带进度条）
+* 4.下载文件（带进度条）
 
 ```java
     RestClient.getInstance()

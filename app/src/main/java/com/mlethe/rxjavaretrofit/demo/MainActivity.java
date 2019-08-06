@@ -13,7 +13,7 @@ import android.widget.Toast;
 import com.mlethe.library.net.RestClient;
 import com.mlethe.library.net.UploadUtil;
 import com.mlethe.library.net.callback.Consumer;
-import com.mlethe.library.net.callback.IRequest;
+import com.mlethe.library.net.callback.IProcess;
 
 import java.io.File;
 import java.util.HashMap;
@@ -86,9 +86,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             RestClient.getInstance()
                     .url("hoolay.apk")
                     .filename("hoolay_1.0.2.apk")
-                    .process((currentLength, totalLength) -> {
-                        downloadPb.setProgress((int) (currentLength * 100 / totalLength));
-                        Log.e(TAG, "onProgress: Thread->" + Thread.currentThread().getName() + "    percent->" + (currentLength / totalLength));
+                    .process(new IProcess() {
+                        @Override
+                        public void onProgress(float currentLength, float totalLength) {
+                            downloadPb.setProgress((int) (currentLength * 100 / totalLength));
+                            Log.e(TAG, "onProgress: Thread->" + Thread.currentThread().getName() + "    percent->" + (currentLength / totalLength));
+                        }
                     })
                     .download()
                     .observeOn(AndroidSchedulers.mainThread())
@@ -117,9 +120,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Map<String, RequestBody> params = new HashMap<>();
             params.put("userId", UploadUtil.createRequestBodyOfText("2"));
             RestClient.getInstance()
-                    .process((currentLength, totalLength) -> {
-                        uploadOnePb.setProgress((int) (currentLength * 100 / totalLength));
-                        Log.e(TAG, "onProgress: Thread->" + Thread.currentThread().getName() + "    percent->" + (currentLength / totalLength));
+                    .process(new IProcess() {
+                        @Override
+                        public void onProgress(float currentLength, float totalLength) {
+                            uploadOnePb.setProgress((int) (currentLength * 100 / totalLength));
+                            Log.e(TAG, "onProgress: Thread->" + Thread.currentThread().getName() + "    percent->" + (currentLength / totalLength));
+                        }
                     })
                     .create(ServerApi.class)
                     .upload(UploadUtil.createMultipartBodyPartOfForm("file", file), params)
@@ -152,9 +158,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Map<String, RequestBody> params = new HashMap<>();
             params.put("userId", UploadUtil.createRequestBodyOfText("2"));
             RestClient.getInstance()
-                    .process((currentLength, totalLength) -> {
-                        uploadMorePb.setProgress((int) (currentLength * 100 / totalLength));
-                        Log.e(TAG, "onProgress: Thread->" + Thread.currentThread().getName() + "    percent->" + (currentLength / totalLength));
+                    .process(new IProcess() {
+                        @Override
+                        public void onProgress(float currentLength, float totalLength) {
+                            uploadMorePb.setProgress((int) (currentLength * 100 / totalLength));
+                            Log.e(TAG, "onProgress: Thread->" + Thread.currentThread().getName() + "    percent->" + (currentLength / totalLength));
+                        }
                     })
                     .create(ServerApi.class)
                     .upload(UploadUtil.createMultipartBodyPartsOfForm("file[]", file, file2), params)
