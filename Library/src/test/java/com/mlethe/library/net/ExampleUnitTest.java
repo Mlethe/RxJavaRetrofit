@@ -1,4 +1,4 @@
-package com.mlethe.demo;
+package com.mlethe.library.net;
 
 import org.junit.Test;
 
